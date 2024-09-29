@@ -6,6 +6,7 @@ const cors = require('cors');
 
 const app = express();
 app.use(express.static('dist'))
+app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'dist')));
 
@@ -13,8 +14,24 @@ const db = new sqlite3.Database('./data.db');
 
 const upload = multer({ storage: multer.memoryStorage() });
 
+app.post('/api/register', (req, res) => {
+    const { name, email, password, confirm_password } = req.body;
 
-app.post('/login', (req, res) => {
+    if (password !== confirm_password) {
+        return res.status(400).json({ error: 'passwords donot match' });
+    }
+
+    const query = `INSERT INTO companys (name, email, password) VALUES (?, ?, ?)`;
+    db.run(query, [name, email, password], function(err) {
+        if (err) {
+            return res.status(400).json({ error: 'invalid credentials' })
+        }
+
+        return res.status(201).json({ id: this.lastID })
+    })
+})
+
+app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -36,8 +53,8 @@ app.post('/login', (req, res) => {
     })
 })
 
-// register or create a new profile for a company
-app.post('/companys', upload.single('logo'), (req, res) => {
+//create a new profile for a company
+app.post('/api/companys', upload.single('logo'), (req, res) => {
   const {
     name, email, password, total_post, tagline, description, contact_email, contact_phone,
   } = req.body;
@@ -58,7 +75,7 @@ app.post('/companys', upload.single('logo'), (req, res) => {
 });
 
 
-app.get('/companys/:id', (req, res) => {
+app.get('/api/companys/:id', (req, res) => {
     const id = req.params.id
     const query = `SELECT * FROM companys WHERE id = ?`
 
@@ -76,7 +93,7 @@ app.get('/companys/:id', (req, res) => {
 })
 
 // Route to get all companies, including the logo
-app.get('/companys', (req, res) => {
+app.get('/api/companys', (req, res) => {
   const query = `SELECT id, name, email, total_post, tagline, description, contact_email, contact_phone, logo FROM companys`;
 
   db.all(query, [], (err, rows) => {
@@ -91,10 +108,7 @@ app.get('/companys', (req, res) => {
       };
     });
 
-    res.json({
-      message: 'success',
-      data: companies,
-    });
+    return res.json(companies);
   });
 });
 
@@ -103,7 +117,7 @@ app.get('/companys', (req, res) => {
 
 
 // find all jobs
-app.get('/jobs', (req, res) => {
+app.get('/api/all-jobs', (req, res) => {
     const query = `
         SELECT 
             jobs.id AS job_id,
@@ -112,6 +126,9 @@ app.get('/jobs', (req, res) => {
             jobs.location,
             jobs.description,
             jobs.salary,
+            jobs.deadline,
+            jobs.type,
+            jobs.creation_date,
             companys.id AS company_id,
             companys.name AS company_name,
             companys.logo AS company_logo,
@@ -138,6 +155,9 @@ app.get('/jobs', (req, res) => {
                 location: row.location,
                 description: row.description,
                 salary: row.salary,
+                deadline: row.deadline,
+                type: row.type,
+                creation_date: row.creation_date,
                 company: {
                     name: row.company_name,
                     logo: row.company_logo ? row.company_logo.toString('base64'): null,
@@ -153,15 +173,15 @@ app.get('/jobs', (req, res) => {
 });
 
 
-app.post('/add-jobs', (req, res) => {
-    const { title, experience, location, description, salary, company_id } = req.body
+app.post('/api/add-jobs', (req, res) => {
+    const { title, experience, location, description, salary, company_id, type, deadline, creation_date } = req.body
 
     const query = `
-        INSERT INTO jobs (title, experience, location, description, salary, company_id)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO jobs (title, experience, location, description, salary, company_id, type, deadline, creation_date)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
 
-    db.run(query, [title, experience, location, description, salary, company_id], function (err) {
+    db.run(query, [title, experience, location, description, salary, company_id, type, deadline, creation_date], function (err) {
         if (err) {
             return res.status(500).json({ error: 'internal server error' })
         }
