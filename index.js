@@ -15,10 +15,32 @@ const db = new sqlite3.Database('./data.db');
 const upload = multer({ storage: multer.memoryStorage() });
 
 app.get('/api/companys/jobs/:id', (req, res) => {
-    console.log('getting a req')
     const id = req.params.id
 
-    const query = `SELECT * FROM jobs WHERE company_id = ?`
+    const query = `
+        SELECT 
+            jobs.id AS job_id,
+            jobs.title,
+            jobs.experience,
+            jobs.location,
+            jobs.description,
+            jobs.salary,
+            jobs.deadline,
+            jobs.type,
+            jobs.creation_date,
+            companys.id AS company_id,
+            companys.name AS company_name,
+            companys.logo AS company_logo,
+            companys.description AS company_description,
+            companys.contact_email AS company_contact_email,
+            companys.contact_phone AS company_contact_phone
+        FROM 
+            jobs
+        JOIN 
+            companys ON jobs.company_id = companys.id
+        WHERE
+            jobs.company_id = ?
+    `;
     db.all(query, [id], function(err, rows) {
 
         if (err) {
