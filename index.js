@@ -14,6 +14,43 @@ const db = new sqlite3.Database('./data.db');
 
 const upload = multer({ storage: multer.memoryStorage() });
 
+app.get('/api/companys/jobs/:id', (req, res) => {
+    console.log('getting a req')
+    const id = req.params.id
+
+    const query = `SELECT * FROM jobs WHERE company_id = ?`
+    db.all(query, [id], function(err, rows) {
+
+        if (err) {
+            return res.status(400).json({ error: 'wrong credentials' })
+        }
+
+        const jobs = rows.map(row => {
+            return {
+                id: row.job_id,
+                title: row.title,
+                experience: row.experience,
+                location: row.location,
+                description: row.description,
+                salary: row.salary,
+                deadline: row.deadline,
+                type: row.type,
+                creation_date: row.creation_date,
+                company: {
+                    name: row.company_name,
+                    logo: row.company_logo ? row.company_logo.toString('base64'): null,
+                    description: row.company_description,
+                    contactEmail: row.company_contact_email,
+                    contactPhone: row.company_contact_phone,
+                },
+            }
+        })
+
+        return res.status(200).json(jobs);
+
+    })
+})
+
 app.post('/api/register', (req, res) => {
     const { name, email, password, confirm_password } = req.body;
 
