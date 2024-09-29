@@ -59,6 +59,7 @@ app.get('/api/companys/jobs/:id', (req, res) => {
                 type: row.type,
                 creation_date: row.creation_date,
                 company: {
+                    id: row.company_id,
                     name: row.company_name,
                     logo: row.company_logo ? row.company_logo.toString('base64'): null,
                     description: row.company_description,
