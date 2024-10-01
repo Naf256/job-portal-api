@@ -87,7 +87,7 @@ app.post('/api/register', (req, res) => {
             return res.status(400).json({ error: 'invalid credentials' })
         }
 
-        return res.status(201).json({ id: this.lastID })
+        return res.status(201).json({ id: this.lastID, name: name })
     })
 })
 
@@ -245,7 +245,17 @@ app.post('/api/add-jobs', (req, res) => {
         if (err) {
             return res.status(500).json({ error: 'internal server error' })
         }
-        return res.json(201).json({ id: this.lastID })
+
+        const query_total = `
+            UPDATE companys SET total_post = companys.total_post + 1 WHERE id = ?
+        `
+        db.run(query, [company_id], function(err) {
+            if (err) {
+                return res.status(500).json({ error: 'internal server error' })
+            }
+
+            return res.json(201).json({ id: this.lastID })
+        })
     })
 })
 
