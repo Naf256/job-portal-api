@@ -257,7 +257,7 @@ app.post('/api/add-jobs', (req, res) => {
                 return res.status(500).json({ error: 'internal server error' })
             }
 
-            return res.json(201).json({ id: this.lastID })
+            return res.status(201).json({ id: this.lastID })
         })
     })
 })
