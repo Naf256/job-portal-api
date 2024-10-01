@@ -249,7 +249,7 @@ app.post('/api/add-jobs', (req, res) => {
         const query_total = `
             UPDATE companys SET total_post = companys.total_post + 1 WHERE id = ?
         `
-        db.run(query, [company_id], function(err) {
+        db.run(query_total, [company_id], function(err) {
             if (err) {
                 return res.status(500).json({ error: 'internal server error' })
             }
