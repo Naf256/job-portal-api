@@ -148,7 +148,10 @@ app.get('/api/companys/:id', (req, res) => {
             return res.status(404).json({ error: 'not found' })
         } 
 
-        return res.status(200).json(row)
+        return res.status(200).json({
+            ...row,
+            logo: row.logo ? row.logo.toString('base64') : null
+        })
     })
 })
 
