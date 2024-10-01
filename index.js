@@ -246,7 +246,7 @@ app.post('/api/add-jobs', (req, res) => {
 
     db.run(query, [title, experience, location, description, salary, company_id, type, deadline, creation_date], function (err) {
         if (err) {
-            return res.status(500).json({ error: 'internal server error' })
+            return res.status(500).json({ error: 'internal server error at insertion' })
         }
 
         const query_total = `
@@ -256,7 +256,7 @@ app.post('/api/add-jobs', (req, res) => {
 
         db.run(query_total, [company_id], function(err) {
             if (err) {
-                return res.status(500).json({ error: 'internal server error' })
+                return res.status(500).json({ error: 'internal server error at updating total post' })
             }
 
             return res.status(201).json({ id: jobId })
